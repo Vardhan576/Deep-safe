@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="hero">
+    <h1>Advanced Media Analyzer</h1>
+    <p>Comprehensive AI content detection across text, audio, video, and imagery.</p>
+</div>
+
+<div class="dashboard-grid">
+    <div class="glass-card upload-section">
+        <h2>Upload Media for Analysis</h2>
+        <form id="media-upload-form" enctype="multipart/form-data">
+            <div class="drop-zone" id="media-drop-zone">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <p>Drag & Drop any media file here</p>
+                <span>or <label for="media-file-upload" class="browse-btn">Browse files</label></span>
+                <input type="file" id="media-file-upload" name="document" accept="*/*" hidden>
+            </div>
+            <p class="file-info" id="media-file-info"></p>
+            <button type="submit" class="btn-primary mt-20" id="media-scan-btn" disabled>Run Advanced Analysis</button>
+        </form>
+        <div class="loader" id="media-loader" style="display: none;"></div>
+        <p class="error-msg" id="media-scan-error"></p>
+    </div>
+
+    <div class="glass-card result-section" id="media-result-section" style="display: none;">
+        <h2>Analysis Verdict: <span id="final-verdict" style="color: var(--accent);">Waiting...</span></h2>
+        
+        <div class="stats-row" style="margin-top: 20px;">
+            <div class="stat-box">
+                <span class="label">Overall AI %</span>
+                <span class="value" id="res-overall">0%</span>
+            </div>
+            <div class="stat-box">
+                <span class="label">Text AI %</span>
+                <span class="value" id="res-text">0%</span>
+            </div>
+            <div class="stat-box">
+                <span class="label">Image AI %</span>
+                <span class="value" id="res-image">0%</span>
+            </div>
+            <div class="stat-box">
+                <span class="label">Audio AI %</span>
+                <span class="value" id="res-audio">0%</span>
+            </div>
+            <div class="stat-box">
+                <span class="label">Video AI %</span>
+                <span class="value" id="res-video">0%</span>
+            </div>
+        </div>
+
+        <div style="margin-top: 20px; text-align: left;">
+            <h3>Detailed Summaries</h3>
+            <p><strong>Text:</strong> <span id="sum-text">-</span></p>
+            <p><strong>Image:</strong> <span id="sum-image">-</span></p>
+            <p><strong>Audio:</strong> <span id="sum-audio">-</span></p>
+            <p><strong>Video:</strong> <span id="sum-video">-</span></p>
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <h3>Raw JSON Output</h3>
+            <pre id="raw-json-output" style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; text-align: left; overflow-x: auto; font-size: 0.9em;"></pre>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const dropZone = document.getElementById('media-drop-zone');
+    const fileInput = document.getElementById('media-file-upload');
+    const fileInfo = document.getElementById('media-file-info');
+    const scanBtn = document.getElementById('media-scan-btn');
+    const form = document.getElementById('media-upload-form');
+    
+    const dragOverlay = ['dragenter', 'dragover', 'dragleave', 'drop'];
+    dragOverlay.forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight(e) {
+        dropZone.classList.add('dragover');
+    }
+
+    function unhighlight(e) {
+        dropZone.classList.remove('dragover');
+    }
+
+    dropZone.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        handleFiles(files);
+    }
+
+    fileInput.addEventListener('change', function() {
+        handleFiles(this.files);
+    });
+
+    function handleFiles(files) {
+        if (files.length > 0) {
+            fileInput.files = files; // Sync drop
+            fileInfo.textContent = `Selected: ${files[0].name}`;
+            scanBtn.disabled = false;
+        }
+    }
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const loader = document.getElementById('media-loader');
+        const errorMsg = document.getElementById('media-scan-error');
+        const resultSection = document.getElementById('media-result-section');
+        
+        errorMsg.textContent = '';
+        resultSection.style.display = 'none';
+        scanBtn.disabled = true;
+        loader.style.display = 'block';
+        
+        const formData = new FormData(form);
+        
+        try {
+            const resp = await fetch('/api/media-analyze', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await resp.json();
+            
+            if (resp.ok && !data.error) {
+                // Populate results
+                document.getElementById('res-overall').textContent = data.overall_ai_percentage + '%';
+                document.getElementById('res-text').textContent = data.text_ai_percentage + '%';
+                document.getElementById('res-image').textContent = data.image_ai_percentage + '%';
+                document.getElementById('res-audio').textContent = data.audio_ai_percentage + '%';
+                document.getElementById('res-video').textContent = data.video_ai_percentage + '%';
+                
+                document.getElementById('sum-text').textContent = data.detailed_analysis.text_summary;
+                document.getElementById('sum-image').textContent = data.detailed_analysis.image_summary;
+                document.getElementById('sum-audio').textContent = data.detailed_analysis.audio_summary;
+                document.getElementById('sum-video').textContent = data.detailed_analysis.video_summary;
+                
+                document.getElementById('final-verdict').textContent = data.final_verdict;
+                
+                document.getElementById('raw-json-output').textContent = JSON.stringify(data, null, 2);
+                
+                resultSection.style.display = 'block';
+            } else {
+                errorMsg.textContent = data.error || 'Connection error';
+            }
+        } catch (err) {
+            errorMsg.textContent = 'Failed to analyze media.';
+            console.error(err);
+        } finally {
+            loader.style.display = 'none';
+            scanBtn.disabled = false;
+        }
+    });
+
+</script>
+{% endblock %}

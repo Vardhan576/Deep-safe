@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="hero">
+    <h1>Universal Steganography Tool</h1>
+    <p>Securely hide and reveal secret messages within any file type (Images, Audio, Video, Documents).</p>
+</div>
+
+<div class="glass-card steganography-container">
+    <div class="tabs">
+        <button class="tab-btn active" data-target="encode-panel">Encode (Hide)</button>
+        <button class="tab-btn" data-target="decode-panel">Advanced Steganalysis (Decode)</button>
+    </div>
+
+    <!-- ENCODE PANEL -->
+    <div class="panel active" id="encode-panel">
+        <div class="form-group">
+            <label>1. Select Base File (ANY format: .png, .mp4, .pdf, .mp3, etc.)</label>
+            <input type="file" id="encode-img" class="file-input" accept="*/*">
+        </div>
+        <div class="form-group">
+            <label>2. Enter Secret Message</label>
+            <textarea id="secret-msg" rows="4" placeholder="Type your secret message here..."></textarea>
+        </div>
+        <button class="btn-primary" id="encode-btn">Encode & Download File</button>
+        <div class="loader" id="encode-loader" style="display: none;"></div>
+        <p class="error-msg" id="encode-error"></p>
+    </div>
+
+    <!-- DECODE PANEL -->
+    <div class="panel" id="decode-panel">
+        <div class="form-group">
+            <label>1. Upload Encoded File</label>
+            <input type="file" id="decode-img" class="file-input" accept="*/*">
+        </div>
+        <button class="btn-primary" id="decode-btn" style="background: linear-gradient(135deg, #a371f7, #58a6ff); font-weight: 700; box-shadow: 0 4px 20px rgba(88,166,255,.35);"><i class="fa-solid fa-magnifying-glass-chart"></i> Run Advanced Scan</button>
+        <div class="loader" id="decode-loader" style="display: none; border-top-color: #a371f7;"></div>
+        
+        <div class="result-box mt-20" id="decode-result" style="display:none; background: transparent; padding: 0;">
+            <h3 style="font-size: .95rem; margin-bottom: 10px; color: var(--text-main);"><i class="fa-solid fa-code" style="color:#58a6ff;"></i> Advanced Steganalysis Report (JSON)</h3>
+            <pre id="revealed-msg" style="background: rgba(0,0,0,.35); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; font-family: monospace; font-size: .85rem; color: #72bfff; white-space: pre-wrap; overflow-x: auto; max-height: 400px; text-align: left;"></pre>
+            <div style="margin-top: 10px; text-align: left;">
+                <button class="copy-btn" id="copy-steg-json-btn" style="padding: 8px 18px; background: rgba(88,166,255,.12); border: 1px solid #58a6ff; border-radius: 8px; color: #58a6ff; cursor: pointer; font-size: .88rem; transition: .3s;"><i class="fa-solid fa-copy"></i> Copy JSON</button>
+            </div>
+        </div>
+        <p class="error-msg" id="decode-error"></p>
+    </div>
+</div>
+{% endblock %}

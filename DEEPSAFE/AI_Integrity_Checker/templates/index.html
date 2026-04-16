@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="hero">
+    <h1>Document AI Scanner</h1>
+    <p>Detect AI-generated content in your documents instantly using advanced linguistic heuristics.</p>
+</div>
+
+<div class="dashboard-grid">
+    <div class="glass-card upload-section">
+        <h2>Upload Document</h2>
+        <div class="drop-zone" id="drop-zone">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            <p>Drag & Drop any file (Text, Audio, Video, Image) here</p>
+            <span>or <label for="file-upload" class="browse-btn">Browse files</label></span>
+            <input type="file" id="file-upload" accept="*/*" hidden>
+        </div>
+        <p class="file-info" id="file-info"></p>
+        <button class="btn-primary mt-20" id="scan-btn" disabled>Scan Document</button>
+        <div class="loader" id="loader" style="display: none;"></div>
+        <p class="error-msg" id="scan-error"></p>
+    </div>
+
+    <div class="glass-card result-section" id="result-section" style="display: none;">
+        <h2>Scan Results</h2>
+        <div class="result-display">
+            <div class="progress-ring">
+                <svg viewBox="0 0 100 100">
+                    <circle class="bg" cx="50" cy="50" r="40"></circle>
+                    <circle class="progress" id="progress-circle" cx="50" cy="50" r="40"></circle>
+                </svg>
+                <div class="percentage">
+                    <span id="ai-value">0</span>%
+                </div>
+            </div>
+            <p class="result-text">Probability of AI-generated content</p>
+            <div class="stats-row">
+                <div class="stat-box">
+                    <span class="label">Total Words:</span>
+                    <span class="value" id="total-words">0</span>
+                </div>
+                <div class="stat-box">
+                    <span class="label">Filename:</span>
+                    <span class="value" id="res-filename" style="word-break: break-all; font-size: 0.9em;">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="glass-card mt-30 history-section">
+    <h2>Recent Scans</h2>
+    <div class="table-responsive">
+        <table id="history-table">
+            <thead>
+                <tr>
+                    <th>Filename</th>
+                    <th>AI Prediction</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Populated by JS -->
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

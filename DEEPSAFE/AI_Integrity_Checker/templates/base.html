@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AI Document & Media Integrity Checker{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    {% block head %}
+    <style>
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-weight: 500;
+        }
+
+        .alert-error {
+            border-left: 4px solid #ef4444;
+            color: #fecaca;
+        }
+
+        .alert-success {
+            border-left: 4px solid #10b981;
+            color: #d1fae5;
+        }
+    </style>
+    {% endblock %}
+</head>
+
+<body>
+    <div class="blob-bg"></div>
+    <div class="blob-bg blob-2"></div>
+
+    <nav class="glass-nav">
+        <div class="nav-brand">
+            <i class="fa-solid fa-shield-halved"></i> <span>Deep Safe AI </span>
+        </div>
+        <ul class="nav-links">
+            {% if session.get('user_id') %}
+            <li><a href="{{ url_for('index') }}" class="{{ 'active' if request.path == '/' else '' }}">AI Detection</a>
+            </li>
+            <li><a href="{{ url_for('steganography_page') }}"
+                    class="{{ 'active' if request.path == '/steganography' else '' }}">Steganography</a></li>
+            <li><a href="{{ url_for('cyber_analyzer_page') }}"
+                    class="{{ 'active' if request.path == '/cyber-analyzer' else '' }}"><i
+                        class="fa-solid fa-user-secret" style="margin-right:5px;"></i>Cyber Analyzer</a></li>
+            <li><a href="{{ url_for('advanced_analyzer_page') }}"
+                    class="{{ 'active' if request.path == '/advanced-analyzer' else '' }}"><i
+                        class="fa-solid fa-photo-film" style="margin-right:5px;"></i>Advanced Analyzer</a></li>
+            <li><a href="{{ url_for('logout') }}" class="btn-primary"
+                    style="padding: 0.5rem 1rem; border-radius: 5px; margin-left: 10px;">Logout</a></li>
+            {% else %}
+            <li><a href="{{ url_for('login') }}" class="{{ 'active' if request.path == '/login' else '' }}">Login</a>
+            </li>
+            <li><a href="{{ url_for('signup') }}" class="{{ 'active' if request.path == '/signup' else '' }}">Sign
+                    Up</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <main class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

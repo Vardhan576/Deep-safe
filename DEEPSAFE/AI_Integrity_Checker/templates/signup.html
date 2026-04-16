@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Sign Up - Deep Safe AI{% endblock %}
+{% block content %}
+<div class="glass-container" style="max-width: 400px; margin: 5rem auto; padding: 2rem;">
+    <h2 style="text-align: center; margin-bottom: 2rem; color: white;">Sign Up</h2>
+    <form method="POST" action="{{ url_for('signup') }}">
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+            <label for="username" style="display: block; margin-bottom: 0.5rem; color: #e2e8f0;">Username</label>
+            <input type="text" id="username" name="username" class="glass-input" required style="width: 100%; padding: 0.75rem; border-radius: 8px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: white;">
+        </div>
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+            <label for="password" style="display: block; margin-bottom: 0.5rem; color: #e2e8f0;">Password</label>
+            <input type="password" id="password" name="password" class="glass-input" required style="width: 100%; padding: 0.75rem; border-radius: 8px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: white;">
+        </div>
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+            <label for="confirm_password" style="display: block; margin-bottom: 0.5rem; color: #e2e8f0;">Confirm Password</label>
+            <input type="password" id="confirm_password" name="confirm_password" class="glass-input" required style="width: 100%; padding: 0.75rem; border-radius: 8px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: white;">
+        </div>
+        <button type="submit" class="btn-primary" style="width: 100%; padding: 0.75rem; border-radius: 8px; margin-top: 1rem; border: none; cursor: pointer; display: block; font-weight: 600;">Sign Up</button>
+    </form>
+    <p style="text-align: center; margin-top: 1.5rem; color: #cbd5e1;">Already have an account? <a href="{{ url_for('login') }}" style="color: #60a5fa; text-decoration: none;">Log In</a></p>
+</div>
+{% endblock %}

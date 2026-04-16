@@ -1,0 +1,572 @@
+{% extends 'base.html' %}
+{% block title %}Cyber Analyzer — AI & Threat Detection{% endblock %}
+
+{% block head %}
+<style>
+/* ── Page layout ── */
+.cyber-hero { text-align: center; margin-bottom: 44px; }
+.cyber-hero h1 {
+    font-size: 2.8rem;
+    background: linear-gradient(to right, #f85149, #ff9f43, #ffd32a);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 10px;
+}
+.cyber-hero p { color: var(--text-muted); font-size: 1.15rem; max-width: 660px; margin: 0 auto; }
+
+/* ── Input card ── */
+#cyber-input-card { position: relative; }
+.ca-label {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px; letter-spacing: .04em; text-transform: uppercase;
+}
+.ca-label i { color: #ff9f43; }
+#cyber-text {
+    width: 100%; min-height: 200px; padding: 18px;
+    background: rgba(0,0,0,0.25); border: 1px solid var(--border-color);
+    border-radius: 14px; color: var(--text-main); font-size: 1rem; resize: vertical;
+    transition: border-color .3s;
+}
+#cyber-text:focus { outline: none; border-color: #ff9f43; }
+.char-counter { text-align: right; font-size: .78rem; color: var(--text-muted); margin-top: 5px; }
+
+.ca-actions { display: flex; gap: 12px; margin-top: 18px; }
+#analyze-btn {
+    flex: 1; padding: 13px;
+    background: linear-gradient(135deg, #f85149, #ff9f43);
+    color: white; border: none; border-radius: 10px;
+    font-size: 1.05rem; font-weight: 700; cursor: pointer;
+    box-shadow: 0 4px 20px rgba(248,81,73,.35);
+    transition: opacity .3s, transform .2s;
+}
+#analyze-btn:hover:not(:disabled) { opacity: .88; transform: translateY(-2px); }
+#analyze-btn:disabled { opacity: .45; cursor: not-allowed; }
+#clear-btn {
+    padding: 13px 22px; background: rgba(255,255,255,.05);
+    border: 1px solid var(--border-color); border-radius: 10px;
+    color: var(--text-muted); cursor: pointer; font-size: .95rem; transition: .3s;
+}
+#clear-btn:hover { background: rgba(255,255,255,.10); color: var(--text-main); }
+
+.ca-loader { display: none; width: 36px; height: 36px; border: 4px solid var(--border-color); border-top-color: #ff9f43; border-radius: 50%; animation: spin 1s linear infinite; margin: 24px auto; }
+.ca-error { color: var(--danger); text-align: center; font-size: .9rem; margin-top: 10px; }
+
+/* ── Results section ── */
+#cyber-results { display: none; margin-top: 36px; }
+.results-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 22px; }
+
+/* Trust gauge */
+.trust-card { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.gauge-wrap { position: relative; width: 160px; height: 160px; }
+.gauge-wrap svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.gauge-wrap circle { fill: none; stroke-width: 10; stroke-linecap: round; }
+.gauge-bg { stroke: rgba(255,255,255,.08); }
+.gauge-fill { stroke-dasharray: 314.16; stroke-dashoffset: 314.16; transition: stroke-dashoffset 1.6s cubic-bezier(.4,0,.2,1), stroke .4s; }
+.gauge-label {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    text-align: center;
+}
+.gauge-score { font-size: 2.1rem; font-weight: 800; }
+.gauge-sub { font-size: .7rem; color: var(--text-muted); display: block; margin-top: 2px; letter-spacing: .06em; }
+.risk-badge {
+    padding: 6px 18px; border-radius: 20px; font-weight: 700; font-size: .9rem;
+    letter-spacing: .05em; text-transform: uppercase;
+}
+.risk-low { background: rgba(46,160,67,.2); color: #3fb950; border: 1px solid #3fb950; }
+.risk-medium { background: rgba(210,153,34,.2); color: #e3b341; border: 1px solid #e3b341; }
+.risk-high { background: rgba(248,81,73,.2); color: #f85149; border: 1px solid #f85149; }
+
+/* AI probability bar */
+.ai-prob-card h3 { margin-bottom: 14px; }
+.prob-bar-wrap { background: rgba(255,255,255,.06); border-radius: 50px; height: 22px; overflow: hidden; position: relative; }
+.prob-bar-fill { height: 100%; border-radius: 50px; transition: width 1.4s cubic-bezier(.4,0,.2,1); }
+.prob-val { font-size: 1.6rem; font-weight: 800; margin-top: 10px; }
+.reasons-list { list-style: none; margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+.reasons-list li {
+    display: flex; gap: 8px; align-items: flex-start;
+    font-size: .88rem; color: var(--text-muted); line-height: 1.5;
+}
+.reasons-list li::before { content: "⚡"; flex-shrink: 0; }
+
+/* Threat card */
+.threat-card h3 { margin-bottom: 14px; }
+.threat-status {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px; border-radius: 12px; font-weight: 600; font-size: 1rem;
+}
+.threat-clear { background: rgba(46,160,67,.12); border: 1px solid #2ea043; color: #3fb950; }
+.threat-found { background: rgba(248,81,73,.12); border: 1px solid #f85149; color: #f85149; }
+.threat-status i { font-size: 1.3rem; }
+
+.encoding-block { margin-top: 16px; }
+.encoding-block .enc-label { font-size: .78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+.enc-value {
+    background: rgba(0,0,0,.3); border: 1px solid var(--border-color);
+    border-radius: 8px; padding: 10px 14px; font-family: monospace; font-size: .88rem;
+    word-break: break-all; max-height: 100px; overflow-y: auto;
+}
+.flag-box {
+    margin-top: 14px; padding: 14px 18px; border-radius: 12px;
+    background: rgba(255,215,0,.08); border: 1px solid gold;
+    display: flex; align-items: center; gap: 10px; font-weight: 700;
+    color: gold; font-size: 1rem;
+}
+.flag-box i { font-size: 1.3rem; }
+
+/* JSON output */
+.json-card { grid-column: 1 / -1; }
+.json-card h3 { margin-bottom: 14px; }
+.json-out {
+    background: rgba(0,0,0,.35); border: 1px solid var(--border-color);
+    border-radius: 12px; padding: 20px; font-family: monospace; font-size: .85rem;
+    color: #72bfff; white-space: pre-wrap; overflow-x: auto; max-height: 320px; overflow-y: auto;
+}
+.copy-btn {
+    margin-top: 10px; padding: 8px 18px; background: rgba(88,166,255,.12);
+    border: 1px solid #58a6ff; border-radius: 8px; color: #58a6ff;
+    cursor: pointer; font-size: .88rem; transition: .3s;
+}
+.copy-btn:hover { background: rgba(88,166,255,.22); }
+
+/* Summary banner */
+.summary-banner {
+    padding: 16px 22px; border-radius: 14px; margin-top: 22px;
+    background: rgba(255,255,255,.04); border: 1px solid var(--border-color);
+    font-size: .95rem; line-height: 1.7; color: var(--text-main);
+}
+.summary-banner strong { color: #ff9f43; }
+
+/* Example presets */
+.preset-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.preset-btn {
+    padding: 7px 16px; border-radius: 20px; font-size: .82rem; cursor: pointer;
+    border: 1px solid var(--border-color); background: rgba(255,255,255,.04);
+    color: var(--text-muted); transition: .3s;
+}
+.preset-btn:hover { background: rgba(255,159,67,.12); border-color: #ff9f43; color: var(--text-main); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cyber-hero">
+    <h1><i class="fa-solid fa-user-secret"></i> Cyber Analyzer</h1>
+    <p>Paste any content below — detect AI-generated text, uncover hidden encoded data, auto-solve CTF flags, and get a comprehensive Trust Score.</p>
+</div>
+
+<!-- CTF Generator Card -->
+<div class="glass-card" id="ctf-generator-card" style="margin-bottom: 30px;">
+    <div class="ca-label"><i class="fa-solid fa-flag-checkered"></i> CTF Challenge Generator (JSON Output)</div>
+    <div style="display: flex; gap: 14px; flex-wrap: wrap; margin-top: 15px;">
+        <div style="flex: 1; min-width: 200px;">
+            <label style="font-size: .85rem; color: var(--text-muted); display: block; margin-bottom: 5px;">Category</label>
+            <select id="ctf-category" style="width: 100%; padding: 12px; border-radius: 8px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); color: var(--text-main);">
+                <option value="Cryptography">Cryptography</option>
+                <option value="Web Security">Web Security</option>
+                <option value="Forensics">Forensics</option>
+                <option value="General">General</option>
+            </select>
+        </div>
+        <div style="flex: 1; min-width: 200px;">
+            <label style="font-size: .85rem; color: var(--text-muted); display: block; margin-bottom: 5px;">Difficulty</label>
+            <select id="ctf-difficulty" style="width: 100%; padding: 12px; border-radius: 8px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); color: var(--text-main);">
+                <option value="Easy">Easy</option>
+                <option value="Medium">Medium</option>
+                <option value="Hard">Hard</option>
+            </select>
+        </div>
+    </div>
+    
+    <div class="ca-actions" style="margin-top: 20px;">
+        <button id="generate-ctf-btn" style="flex: 1; padding: 13px; background: linear-gradient(135deg, #a371f7, #58a6ff); color: white; border: none; border-radius: 10px; font-size: 1.05rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 20px rgba(88,166,255,.35); transition: opacity .3s, transform .2s;"><i class="fa-solid fa-wand-magic-sparkles"></i> &nbsp;Generate JSON Profile</button>
+    </div>
+    <div class="ca-loader" id="ctf-loader" style="border-top-color: #a371f7;"></div>
+    <p class="ca-error" id="ctf-error"></p>
+
+    <div id="ctf-results" style="display: none; margin-top: 20px;">
+        <div class="json-card">
+            <h3 style="font-size: .95rem; margin-bottom: 10px; color: var(--text-main);"><i class="fa-solid fa-code" style="color:#58a6ff;"></i> Generated STRICT JSON</h3>
+            <pre class="json-out" style="max-height: 400px;" id="ctf-json-out"></pre>
+            <div style="margin-top: 10px;">
+                <button class="copy-btn" id="copy-ctf-json-btn"><i class="fa-solid fa-copy"></i> Copy JSON</button>
+                <button class="preset-btn" id="send-ctf-to-analyzer" style="margin-left: 10px; border-color: #ff9f43; color: #ff9f43;"><i class="fa-solid fa-share"></i> Send Challenge to Analyzer Input</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Input Card -->
+<div class="glass-card" id="cyber-input-card">
+    <div class="ca-label"><i class="fa-solid fa-terminal"></i> Input Content</div>
+    <textarea id="cyber-text" placeholder="Paste text, encoded data, document snippets, or any suspicious content here…"></textarea>
+    <div class="char-counter"><span id="char-count">0</span> characters</div>
+
+    <!-- Quick Presets -->
+    <div class="ca-label" style="margin-top:18px;"><i class="fa-solid fa-bolt"></i> Quick Presets</div>
+    <div class="preset-row">
+        <button class="preset-btn" id="preset-ai">🤖 Sample AI Text</button>
+        <button class="preset-btn" id="preset-b64">🔐 Base64 Encoded</button>
+        <button class="preset-btn" id="preset-hex">🔢 Hex Encoded</button>
+        <button class="preset-btn" id="preset-flag">🚩 CTF Flag Embed</button>
+        <button class="preset-btn" id="preset-binary">💻 Binary Encoded</button>
+        <button class="preset-btn" id="preset-url">🌐 URL Encoded</button>
+    </div>
+
+    <div class="ca-actions">
+        <button id="analyze-btn"><i class="fa-solid fa-magnifying-glass-chart"></i> &nbsp;Analyze Content</button>
+        <input type="file" id="ca-file-upload" style="display: none;">
+        <button id="upload-scan-btn" style="padding: 13px 22px; background: rgba(88,166,255,.12); border: 1px solid #58a6ff; border-radius: 10px; color: #58a6ff; cursor: pointer; font-size: .95rem; font-weight: 600; transition: .3s;"><i class="fa-solid fa-upload"></i> Upload Steg Image</button>
+        <button id="clear-btn"><i class="fa-solid fa-trash"></i></button>
+    </div>
+    <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 10px;text-align: center;">You can click "Upload Steg Image" to directly extract and analyze hidden code from steganography files!</div>
+    <div class="ca-loader" id="ca-loader"></div>
+    <p class="ca-error" id="ca-error"></p>
+</div>
+
+<!-- Results Section -->
+<div id="cyber-results">
+    <div class="results-grid">
+
+        <!-- Trust Score Gauge -->
+        <div class="glass-card trust-card">
+            <h3><i class="fa-solid fa-shield-halved" style="color:#ff9f43;"></i> Trust Score</h3>
+            <div class="gauge-wrap">
+                <svg viewBox="0 0 100 100">
+                    <circle class="gauge-bg" cx="50" cy="50" r="42"></circle>
+                    <circle class="gauge-fill" id="gauge-circle" cx="50" cy="50" r="42"></circle>
+                </svg>
+                <div class="gauge-label">
+                    <span class="gauge-score" id="gauge-score-val">—</span>
+                    <span class="gauge-sub">/ 100</span>
+                </div>
+            </div>
+            <span class="risk-badge" id="risk-badge">—</span>
+            <p style="font-size:.85rem;color:var(--text-muted);text-align:center;max-width:200px;">
+                Higher AI % and hidden data lower the trust score.
+            </p>
+        </div>
+
+        <!-- AI Probability -->
+        <div class="glass-card ai-prob-card">
+            <h3><i class="fa-solid fa-robot" style="color:#a371f7;"></i> AI Probability</h3>
+            <div class="prob-bar-wrap">
+                <div class="prob-bar-fill" id="prob-bar" style="width:0%;"></div>
+            </div>
+            <div class="prob-val" id="prob-val">—%</div>
+            <p style="font-size:.8rem;color:var(--text-muted);margin-top:4px;">Estimated likelihood of AI authorship</p>
+            <ul class="reasons-list" id="reasons-list"></ul>
+        </div>
+
+        <!-- Hidden Threat Scanner -->
+        <div class="glass-card threat-card">
+            <h3><i class="fa-solid fa-radiation" style="color:#f85149;"></i> Threat Scanner</h3>
+            <div id="threat-status-box" class="threat-status threat-clear">
+                <i class="fa-solid fa-circle-check"></i> No hidden data detected
+            </div>
+
+            <div class="encoding-block" id="enc-block" style="display:none;">
+                <div class="enc-label">Encoding Type</div>
+                <div class="enc-value" id="enc-type-val">—</div>
+                <div class="enc-label" style="margin-top:12px;">Decoded Output</div>
+                <div class="enc-value" id="enc-decoded-val">—</div>
+            </div>
+
+            <div class="flag-box" id="flag-box" style="display:none;">
+                <i class="fa-solid fa-flag"></i>
+                <span>FLAG FOUND: <code id="flag-val"></code></span>
+            </div>
+        </div>
+
+        <!-- JSON Output -->
+        <div class="glass-card json-card">
+            <h3><i class="fa-solid fa-code" style="color:#58a6ff;"></i> Full JSON Output</h3>
+            <pre class="json-out" id="json-out">// Run analysis to see raw output</pre>
+            <button class="copy-btn" id="copy-json-btn"><i class="fa-solid fa-copy"></i> Copy JSON</button>
+        </div>
+
+    </div>
+
+    <!-- Summary Banner -->
+    <div class="summary-banner" id="summary-banner">
+        <strong>Summary:</strong> <span id="summary-text">—</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    const textArea    = document.getElementById('cyber-text');
+    const charCount   = document.getElementById('char-count');
+    const analyzeBtn  = document.getElementById('analyze-btn');
+    const clearBtn    = document.getElementById('clear-btn');
+    const loader      = document.getElementById('ca-loader');
+    const errorEl     = document.getElementById('ca-error');
+
+    // Char counter
+    textArea.addEventListener('input', () => {
+        charCount.textContent = textArea.value.length.toLocaleString();
+    });
+
+    // ── CTF Generator Logic ──────────────────────────────────────────────────
+    const genCtfBtn = document.getElementById('generate-ctf-btn');
+    const ctfLoader = document.getElementById('ctf-loader');
+    const ctfError  = document.getElementById('ctf-error');
+    const ctfResults = document.getElementById('ctf-results');
+    const ctfJsonOut = document.getElementById('ctf-json-out');
+
+    genCtfBtn.addEventListener('click', async () => {
+        const category = document.getElementById('ctf-category').value;
+        const difficulty = document.getElementById('ctf-difficulty').value;
+        
+        ctfError.textContent = '';
+        genCtfBtn.disabled = true;
+        ctfLoader.style.display = 'block';
+        ctfResults.style.display = 'none';
+
+        try {
+            const res = await fetch('/api/generate-ctf', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ category, difficulty })
+            });
+            const data = await res.json();
+            
+            if (res.ok && !data.error) {
+                ctfJsonOut.textContent = JSON.stringify(data, null, 2);
+                ctfResults.style.display = 'block';
+            } else {
+                ctfError.textContent = data.error || 'Failed to generate CTF.';
+            }
+        } catch (e) {
+            ctfError.textContent = 'Network error or server unavailable.';
+        } finally {
+            genCtfBtn.disabled = false;
+            ctfLoader.style.display = 'none';
+        }
+    });
+
+    document.getElementById('copy-ctf-json-btn').addEventListener('click', () => {
+        navigator.clipboard.writeText(ctfJsonOut.textContent).then(() => {
+            const btn = document.getElementById('copy-ctf-json-btn');
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+            setTimeout(() => { btn.innerHTML = '<i class="fa-solid fa-copy"></i> Copy JSON'; }, 2000);
+        });
+    });
+
+    document.getElementById('send-ctf-to-analyzer').addEventListener('click', () => {
+        try {
+            const payload = JSON.parse(ctfJsonOut.textContent);
+            textArea.value = payload.challenge;
+            charCount.textContent = textArea.value.length.toLocaleString();
+            document.getElementById('cyber-input-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            analyzeBtn.click();
+        } catch(e) {
+            console.error(e);
+        }
+    });
+
+    // Clear
+    clearBtn.addEventListener('click', () => {
+        textArea.value = '';
+        charCount.textContent = '0';
+        document.getElementById('cyber-results').style.display = 'none';
+        errorEl.textContent = '';
+    });
+
+    // ── Presets ──────────────────────────────────────────────────────────────
+    const presets = {
+        'preset-ai': `In conclusion, it is important to note that artificial intelligence plays a crucial role in modern technology. Furthermore, it is worth noting that AI systems are becoming increasingly sophisticated. Moreover, these advancements significantly impact various sectors of the economy. Additionally, it is essential to understand the implications of such developments. To summarize, in order to harness the full potential of AI, stakeholders must collaborate effectively.`,
+
+        'preset-b64': `The encrypted payload for the new mission is: SGVsbG8sIHRoaXMgaXMgYSBzZWNyZXQgbWVzc2FnZSEgRkxBR3tzM2NyM3RfZW5jMGQzZH0=. Please ensure secure transmission.`,
+
+        'preset-hex': `System dump captured at 03:17 UTC. Raw data follows: 48656c6c6f20576f726c6421`,
+
+        'preset-flag': `Mission debrief completed. The operator confirmed success. FLAG{ctf_ch4ll3ng3_s0lv3d} was recovered from the encrypted drive. Await further instructions.`,
+
+        'preset-binary': `Intercepted signal data: 01001000 01100101 01101100 01101100 01101111`,
+
+        'preset-url': `Suspicious redirect detected — destination: Hello%20World%21%20This%20is%20URL%20encoded%20data`
+    };
+
+    Object.keys(presets).forEach(id => {
+        document.getElementById(id).addEventListener('click', () => {
+            textArea.value = presets[id];
+            charCount.textContent = presets[id].length.toLocaleString();
+        });
+    });
+
+    // ── File Upload / Steganography chaining ──────────────────────────────────
+    const caFileUpload = document.getElementById('ca-file-upload');
+    const uploadScanBtn = document.getElementById('upload-scan-btn');
+    
+    uploadScanBtn.addEventListener('click', () => {
+        caFileUpload.click();
+    });
+
+    caFileUpload.addEventListener('change', async () => {
+        if (!caFileUpload.files || caFileUpload.files.length === 0) return;
+        const file = caFileUpload.files[0];
+        
+        errorEl.textContent = '';
+        analyzeBtn.disabled = true;
+        uploadScanBtn.disabled = true;
+        loader.style.display = 'block';
+        document.getElementById('cyber-results').style.display = 'none';
+        
+        const formData = new FormData();
+        formData.append('image', file);
+
+        try {
+            // First, try to decode steganography
+            const res = await fetch('/api/stegano/decode', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            
+            if (data.success && data.secret_text) {
+                // Instantly inject the hidden text and analyze it!
+                textArea.value = data.secret_text;
+                charCount.textContent = textArea.value.length.toLocaleString();
+                
+                // Trigger the main cyber analysis pass natively.
+                analyzeBtn.disabled = false;
+                analyzeBtn.click();
+            } else {
+                errorEl.textContent = 'Upload failed or no hidden deep-steganography code found in this file.';
+            }
+        } catch (e) {
+            errorEl.textContent = 'Upload failed due to network error.';
+        } finally {
+            if (uploadScanBtn.disabled && analyzeBtn.disabled) { // fallback if analyzeBtn.click() wasn't fired
+                analyzeBtn.disabled = false;
+                loader.style.display = 'none';
+            }
+            uploadScanBtn.disabled = false;
+            caFileUpload.value = ''; // reset so same file can be uploaded again
+        }
+    });
+
+    // ── Analyze ───────────────────────────────────────────────────────────────
+    analyzeBtn.addEventListener('click', async () => {
+        const text = textArea.value.trim();
+        if (!text) { errorEl.textContent = 'Please enter some content to analyze.'; return; }
+
+        errorEl.textContent = '';
+        analyzeBtn.disabled = true;
+        loader.style.display = 'block';
+        document.getElementById('cyber-results').style.display = 'none';
+
+        try {
+            const res = await fetch('/api/cyber-analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                renderResults(data);
+            } else {
+                errorEl.textContent = data.error || 'Analysis failed.';
+            }
+        } catch (e) {
+            errorEl.textContent = 'Network or server error. Is the Flask server running?';
+        } finally {
+            analyzeBtn.disabled = false;
+            loader.style.display = 'none';
+        }
+    });
+
+    // ── Render results ────────────────────────────────────────────────────────
+    function renderResults(d) {
+
+        // ── Trust gauge ──
+        const circumference = 2 * Math.PI * 42; // r=42 → 263.89
+        const gaugeEl = document.getElementById('gauge-circle');
+        gaugeEl.style.strokeDasharray = circumference;
+        const offset = circumference - (d.trust_score / 100) * circumference;
+        let gaugeColor = '#2ea043';
+        if (d.trust_score < 40) gaugeColor = '#f85149';
+        else if (d.trust_score < 70) gaugeColor = '#e3b341';
+        gaugeEl.style.stroke = gaugeColor;
+        setTimeout(() => { gaugeEl.style.strokeDashoffset = offset; }, 60);
+        document.getElementById('gauge-score-val').textContent = d.trust_score;
+        document.getElementById('gauge-score-val').style.color = gaugeColor;
+
+        const riskBadge = document.getElementById('risk-badge');
+        riskBadge.textContent = d.risk_level;
+        riskBadge.className = 'risk-badge';
+        riskBadge.classList.add(
+            d.risk_level === 'Low' ? 'risk-low' : d.risk_level === 'Medium' ? 'risk-medium' : 'risk-high'
+        );
+
+        // ── AI Probability bar ──
+        const bar = document.getElementById('prob-bar');
+        let barColor = '#2ea043';
+        if (d.ai_probability >= 70) barColor = '#f85149';
+        else if (d.ai_probability >= 30) barColor = '#e3b341';
+        bar.style.background = barColor;
+        setTimeout(() => { bar.style.width = d.ai_probability + '%'; }, 60);
+        document.getElementById('prob-val').textContent = d.ai_probability + '%';
+        document.getElementById('prob-val').style.color = barColor;
+
+        const reasonsList = document.getElementById('reasons-list');
+        reasonsList.innerHTML = '';
+        (d.ai_reasons || []).forEach(r => {
+            const li = document.createElement('li');
+            li.textContent = r;
+            reasonsList.appendChild(li);
+        });
+
+        // ── Threat scanner ──
+        const statusBox = document.getElementById('threat-status-box');
+        const encBlock  = document.getElementById('enc-block');
+        const flagBox   = document.getElementById('flag-box');
+
+        if (d.hidden_data_found) {
+            statusBox.className = 'threat-status threat-found';
+            statusBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Hidden encoded data detected!';
+            encBlock.style.display = 'block';
+            document.getElementById('enc-type-val').textContent = d.encoding_type || '—';
+            document.getElementById('enc-decoded-val').textContent = d.decoded_output || '—';
+        } else {
+            statusBox.className = 'threat-status threat-clear';
+            statusBox.innerHTML = '<i class="fa-solid fa-circle-check"></i> No hidden data detected';
+            encBlock.style.display = 'none';
+        }
+
+        if (d.flag_found) {
+            flagBox.style.display = 'flex';
+            document.getElementById('flag-val').textContent = d.flag;
+        } else {
+            flagBox.style.display = 'none';
+        }
+
+        // ── JSON output ──
+        const jout = { ...d };
+        delete jout.success;
+        document.getElementById('json-out').textContent = JSON.stringify(jout, null, 2);
+
+        // ── Summary ──
+        document.getElementById('summary-text').textContent = d.final_summary;
+
+        // Show results
+        document.getElementById('cyber-results').style.display = 'block';
+        document.getElementById('cyber-results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // ── Copy JSON ─────────────────────────────────────────────────────────────
+    document.getElementById('copy-json-btn').addEventListener('click', () => {
+        const text = document.getElementById('json-out').textContent;
+        navigator.clipboard.writeText(text).then(() => {
+            const btn = document.getElementById('copy-json-btn');
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+            setTimeout(() => { btn.innerHTML = '<i class="fa-solid fa-copy"></i> Copy JSON'; }, 2000);
+        });
+    });
+});
+</script>
+{% endblock %}
