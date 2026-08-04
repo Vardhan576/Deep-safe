@@ -153,22 +153,3 @@ GitHub: [Vardhan576](https://github.com/Vardhan576)
 
 [Deep-safe Repository](https://github.com/Vardhan576/Deep-safe)
 
-<h2 align="center">✨ DeepSafe AI - Project Gallery</h2>
-
-<p align="center">
-  <img src="images/login.png" width="800"><br><br>
-
-  <img src="images/ai-detection.png" width="800"><br><br>
-
-  <img src="images/cyber-analyzer-home.png" width="49%">
-  <img src="images/cyber-analyzer-result.png" width="49%"><br><br>
-
-  <img src="images/steganography-encode.png" width="49%">
-  <img src="images/steganography-decode.png" width="49%"><br><br>
-
-  <img src="images/advanced-media-analyzer.png" width="800"><br><br>
-
-  <img src="images/dashboard.png" width="49%">
-  <img src="images/recent-scans.png" width="49%">
-</p>
-..
