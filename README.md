@@ -153,83 +153,22 @@ GitHub: [Vardhan576](https://github.com/Vardhan576)
 
 [Deep-safe Repository](https://github.com/Vardhan576/Deep-safe)
 
-## 📸 Application Screenshots
-
-### 🔐 User Authentication
+<h2 align="center">✨ DeepSafe AI - Project Gallery</h2>
 
 <p align="center">
-  <img src="images/login.png" width="900" alt="Login Page">
+  <img src="images/login.png" width="800"><br><br>
+
+  <img src="images/ai-detection.png" width="800"><br><br>
+
+  <img src="images/cyber-analyzer-home.png" width="49%">
+  <img src="images/cyber-analyzer-result.png" width="49%"><br><br>
+
+  <img src="images/steganography-encode.png" width="49%">
+  <img src="images/steganography-decode.png" width="49%"><br><br>
+
+  <img src="images/advanced-media-analyzer.png" width="800"><br><br>
+
+  <img src="images/dashboard.png" width="49%">
+  <img src="images/recent-scans.png" width="49%">
 </p>
-
-> Secure user authentication with Login and Sign-Up functionality.
-
----
-
-### 🤖 AI Document Detection
-
-<p align="center">
-  <img src="images/ai-detection.png" width="900" alt="AI Detection">
-</p>
-
-> Upload documents, images, audio, or video to detect AI-generated content and view recent scan history.
-
----
-
-### 🛡️ Cyber Analyzer
-
-<p align="center">
-  <img src="images/cyber-analyzer-home.png" width="900" alt="Cyber Analyzer">
-</p>
-
-> Analyze suspicious text, encoded data, and CTF payloads using intelligent AI-powered threat detection.
-
----
-
-### 📊 Cyber Analyzer Results
-
-<p align="center">
-  <img src="images/cyber-analyzer-result.png" width="900" alt="Cyber Analyzer Results">
-</p>
-
-> Displays AI probability, Trust Score, hidden data detection, decoded output, and extracted CTF flags.
-
----
-
-### 🔒 Steganography - Hide Secret Message
-
-<p align="center">
-  <img src="images/steganography-encode.png" width="900" alt="Encode Message">
-</p>
-
-> Hide confidential messages inside images, videos, audio, or documents.
-
----
-
-### 🔓 Steganography - Reveal Secret Message
-
-<p align="center">
-  <img src="images/steganography-decode.png" width="900" alt="Decode Message">
-</p>
-
-> Reveal hidden messages securely from encoded files.
-
----
-
-### 📈 Advanced Media Analyzer
-
-<p align="center">
-  <img src="images/advanced-media-analyzer.png" width="900" alt="Advanced Media Analyzer">
-</p>
-
-> Analyze text, images, audio, and video for AI-generated content with detailed percentage breakdowns.
-
----
-
-### 📋 Dashboard & Recent Scans
-
-<p align="center">
-  <img src="images/dashboard.png" width="49%" alt="Dashboard">
-  <img src="images/recent-scans.png" width="49%" alt="Recent Scans">
-</p>
-
-> Monitor previous analyses and maintain a history of AI detection results.
+..
